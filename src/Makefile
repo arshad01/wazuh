@@ -19,9 +19,9 @@ OSSEC_USER_MAIL?=ossecm
 OSSEC_USER_REM?=ossecr
 
 USE_PRELUDE?=no
-USE_ZEROMQ?=no
+USE_ZEROMQ?=yes
 USE_GEOIP?=no
-USE_INOTIFY=no
+USE_INOTIFY=yes
 
 ifneq (${TARGET},winagent)
 	USE_PICVIZ?=yes
