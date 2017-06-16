@@ -236,6 +236,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
     const char *xml_report_changes = "report_changes";
     const char *xml_restrict = "restrict";
     const char *xml_anchored = "anchored";
+    const char *xml_check_sha256sum = "check_sha256sum";
 
     char *restrictfile = NULL;
     char **dir;
@@ -294,6 +295,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_MD5SUM;
                     opts |= CHECK_SHA1SUM;
+                    opts |= CHECK_SHA256SUM;
                     opts |= CHECK_PERM;
                     opts |= CHECK_SIZE;
                     opts |= CHECK_OWNER;
@@ -301,7 +303,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                     opts |= CHECK_MTIME;
                     opts |= CHECK_INODE;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ ( CHECK_MD5SUM | CHECK_SHA1SUM | CHECK_PERM
+		    opts &= ~ ( CHECK_MD5SUM | CHECK_SHA1SUM | CHECK_PERM | CHECK_SHA256SUM
 		       | CHECK_SIZE | CHECK_OWNER | CHECK_GROUP | CHECK_MTIME | CHECK_INODE );
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
@@ -314,8 +316,9 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_MD5SUM;
                     opts |= CHECK_SHA1SUM;
+                    opts |= CHECK_SHA256SUM;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ ( CHECK_MD5SUM | CHECK_SHA1SUM );
+		    opts &= ~ ( CHECK_MD5SUM | CHECK_SHA1SUM | CHECK_SHA256SUM);
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
                     ret = 0;
@@ -346,12 +349,24 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                     goto out_free;
                 }
             }
+            /* Check sha256sum */
+            else if (strcmp(*attrs, xml_check_sha256sum) == 0) {
+                if (strcmp(*values, "yes") == 0) {
+                    opts |= CHECK_SHA256SUM;
+                } else if (strcmp(*values, "no") == 0) {
+                    opts &= ~ CHECK_SHA256SUM;
+                } else {
+                    merror(SK_INV_OPT, __local_name, *values, *attrs);
+                    ret = 0;
+                    goto out_free;
+                }
+            }
             /* Check permission */
             else if (strcmp(*attrs, xml_check_perm) == 0) {
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_PERM;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ CHECK_PERM;
+                    opts &= ~ CHECK_PERM;
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
                     ret = 0;
@@ -363,7 +378,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_SIZE;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ CHECK_SIZE;
+                    opts &= ~ CHECK_SIZE;
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
                     ret = 0;
@@ -375,7 +390,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_OWNER;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ CHECK_OWNER;
+                    opts &= ~ CHECK_OWNER;
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
                     ret = 0;
@@ -387,7 +402,7 @@ static int read_attr(syscheck_config *syscheck, const char *dirs, char **g_attrs
                 if (strcmp(*values, "yes") == 0) {
                     opts |= CHECK_GROUP;
                 } else if (strcmp(*values, "no") == 0) {
-		    opts &= ~ CHECK_GROUP;
+                    opts &= ~ CHECK_GROUP;
                 } else {
                     merror(SK_INV_OPT, __local_name, *values, *attrs);
                     ret = 0;
@@ -951,6 +966,7 @@ char *syscheck_opts2str(char *buf, int buflen, int opts) {
         CHECK_MTIME,
         CHECK_INODE,
         CHECK_ANCHORED,
+        CHECK_SHA256SUM,
 	0
 	};
     char *check_strings[] = {
@@ -965,6 +981,7 @@ char *syscheck_opts2str(char *buf, int buflen, int opts) {
         "mtime",
         "inode",
         "anchored",
+        "sha256sum",
 	NULL
 	};
 

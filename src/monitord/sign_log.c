@@ -10,6 +10,7 @@
 #include "shared.h"
 #include "os_crypto/md5/md5_op.h"
 #include "os_crypto/sha1/sha1_op.h"
+#include "os_crypto/sha256/sha256_op.h"
 #include "monitord.h"
 
 
@@ -21,6 +22,9 @@ void OS_SignLog(const char *logfile, const char *logfile_old, int log_missing)
 
     os_sha1 sf_sum;
     os_sha1 sf_sum_old;
+
+    os_sha256 sf256_sum;
+    os_sha256 sf256_sum_old;
 
     char logfilesum[OS_FLSIZE + 1];
     char logfilesum_old[OS_FLSIZE + 1];
@@ -52,6 +56,13 @@ void OS_SignLog(const char *logfile, const char *logfile_old, int log_missing)
         strncpy(sf_sum_old, "none", 6);
     }
 
+    /* Generate SHA-256 of the old file  */
+    if (OS_SHA256_File(logfilesum_old, sf256_sum_old, OS_TEXT) < 0) {
+        merror("%s: No previous sha256 checksum found: '%s'. "
+               "Starting over.", ARGV0, logfilesum_old);
+        strncpy(sf256_sum_old, "none", 6);
+    }
+
     /* Generate MD5 of the current file */
     if (OS_MD5_File(logfile, mf_sum, OS_TEXT) < 0) {
         if (log_missing) {
@@ -70,6 +81,15 @@ void OS_SignLog(const char *logfile, const char *logfile_old, int log_missing)
         strncpy(sf_sum, "none", 6);
     }
 
+    /* Generate SHA-1 of the current file */
+    if (OS_SHA256_File(logfile, sf256_sum, OS_TEXT) < 0) {
+        if (log_missing) {
+            merror("%s: File '%s' not found. SHA256 checksum skipped.",
+                   ARGV0, logfile);
+        }
+        strncpy(sf256_sum, "none", 6);
+    }
+
     fp = fopen(logfilesum, "w");
     if (!fp) {
         merror(FOPEN_ERROR, ARGV0, logfilesum, errno, strerror(errno));
@@ -79,10 +99,12 @@ void OS_SignLog(const char *logfile, const char *logfile_old, int log_missing)
     fprintf(fp, "Current checksum:\n");
     fprintf(fp, "MD5  (%s) = %s\n", logfile, mf_sum);
     fprintf(fp, "SHA1 (%s) = %s\n\n", logfile, sf_sum);
+    fprintf(fp, "SHA256 (%s) = %s\n\n", logfile, sf256_sum);
 
     fprintf(fp, "Chained checksum:\n");
     fprintf(fp, "MD5  (%s) = %s\n", logfilesum_old, mf_sum_old);
     fprintf(fp, "SHA1 (%s) = %s\n\n", logfilesum_old, sf_sum_old);
+    fprintf(fp, "SHA256 (%s) = %s\n\n", logfilesum_old, sf256_sum_old);
     fclose(fp);
 
     return;

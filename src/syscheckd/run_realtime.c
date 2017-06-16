@@ -56,13 +56,13 @@ int realtime_checksumfile(const char *file_name)
             return (0);
         }
 
-        if (strcmp(c_sum, buf + 8 + k) != 0) {
+        if (strcmp(c_sum, buf + 9 + k) != 0) {
             char alert_msg[OS_MAXSTR + 1];
 
             alert_msg[OS_MAXSTR] = '\0';
             char *fullalert = NULL;
 
-            if (buf[k+5] == 's' || buf[k+5] == 'n') {
+            if (buf[k+6] == 's' || buf[k+6] == 'n') {
                 fullalert = seechanges_addfile(file_name);
                 if (fullalert) {
                     snprintf(alert_msg, OS_MAXSTR, "%s %s\n%s", c_sum, file_name, fullalert);

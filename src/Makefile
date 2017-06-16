@@ -853,7 +853,15 @@ crypto_sha1_o := $(crypto_sha1_c:.c=.o)
 os_crypto/sha1/%.o: os_crypto/sha1/%.c
 	${OSSEC_CC} ${OSSEC_CFLAGS} -c $^ -o $@
 
-crypto_md5_sha1_c := os_crypto/md5_sha1/md5_sha1_op.c
+crypto_sha256_c := os_crypto/sha256/sha256_op.c
+crypto_sha256_o := $(crypto_sha256_c:.c=.o)
+
+os_crypto/sha256/%.o: os_crypto/sha256/%.c
+	${OSSEC_CC} ${OSSEC_CFLAGS} -c $^ -o $@
+
+crypto_md5_sha1_c := os_crypto/md5_sha1/md5_sha1_op.c \
+						os_crypto/sha256/sha256.c \
+						os_crypto/sha256/mem_clr.c
 crypto_md5_sha1_o := $(crypto_md5_sha1_c:.c=.o)
 
 os_crypto/md5_sha1/%.o: os_crypto/md5_sha1/%.c
@@ -869,6 +877,7 @@ os_crypto/shared/%.o: os_crypto/shared/%.c ${ZLIB_LIB}
 crypto_o := ${crypto_blowfish_o} \
 					 ${crypto_md5_o} \
 					 ${crypto_sha1_o} \
+					 ${crypto_sha256_o} \
 					 ${crypto_shared_o} \
 					 ${crypto_md5_sha1_o}
 
