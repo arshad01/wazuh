@@ -45,22 +45,24 @@ int realtime_checksumfile(const char *file_name)
     buf = (char *) OSHash_Get(syscheck.fp, file_name);
     if (buf != NULL) {
         char c_sum[256 + 2];
+        int k;
 
         c_sum[0] = '\0';
         c_sum[255] = '\0';
+        k = (buf[0] == '@') ? 1 : 0;
 
         /* If it returns < 0, we have already alerted */
         if (c_read_file(file_name, buf, c_sum) < 0) {
             return (0);
         }
 
-        if (strcmp(c_sum, buf + 8) != 0) {
+        if (strcmp(c_sum, buf + 8 + k) != 0) {
             char alert_msg[OS_MAXSTR + 1];
 
             alert_msg[OS_MAXSTR] = '\0';
             char *fullalert = NULL;
 
-            if (buf[5] == 's' || buf[5] == 'n') {
+            if (buf[k+5] == 's' || buf[k+5] == 'n') {
                 fullalert = seechanges_addfile(file_name);
                 if (fullalert) {
                     snprintf(alert_msg, OS_MAXSTR, "%s %s\n%s", c_sum, file_name, fullalert);

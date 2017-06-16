@@ -349,46 +349,53 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
 
     /* Get the old sum values */
 
+    int k = 0;
+    char *anchor = "";
+    if (oldsum[0] == '@') {
+        k = 1;
+        anchor = "@";
+    }
+
     /* size */
-    if (oldsum[0] == '+') {
+    if (oldsum[k+0] == '+') {
         size = 1;
     }
 
     /* perm */
-    if (oldsum[1] == '+') {
+    if (oldsum[k+1] == '+') {
         perm = 1;
     }
 
     /* owner */
-    if (oldsum[2] == '+') {
+    if (oldsum[k+2] == '+') {
         owner = 1;
     }
 
     /* group */
-    if (oldsum[3] == '+') {
+    if (oldsum[k+3] == '+') {
         group = 1;
     }
 
     /* md5 sum */
-    if (oldsum[4] == '+') {
+    if (oldsum[k+4] == '+') {
         md5sum = 1;
     }
 
     /* sha1 sum */
-    if (oldsum[5] == '+') {
+    if (oldsum[k+5] == '+') {
         sha1sum = 1;
-    } else if (oldsum[5] == 's') {
+    } else if (oldsum[k+5] == 's') {
         sha1sum = 1;
-    } else if (oldsum[5] == 'n') {
+    } else if (oldsum[k+5] == 'n') {
         sha1sum = 0;
     }
 
     /* Modification time */
-    if (oldsum[6] == '+')
+    if (oldsum[k+6] == '+')
         mtime = 1;
 
     /* Inode */
-    if (oldsum[7] == '+')
+    if (oldsum[k+7] == '+')
         inode = 1;
 
     /* Generate new checksum */
@@ -422,7 +429,8 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
 
     newsum[0] = '\0';
     newsum[255] = '\0';
-    snprintf(newsum, 255, "%ld:%d:%d:%d:%s:%s:%s:%s:%ld:%ld",
+    snprintf(newsum, 255, "%s%ld:%d:%d:%d:%s:%s:%s:%s:%ld:%ld",
+             anchor,
              size == 0 ? 0 : (long)statbuf.st_size,
              perm == 0 ? 0 : (int)statbuf.st_mode,
              owner == 0 ? 0 : (int)statbuf.st_uid,

@@ -196,6 +196,7 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
     int p = 0;
     size_t sn_size;
     int agent_id;
+    int anchored = 0;
 
     char *saved_sum;
     char *saved_name;
@@ -218,6 +219,11 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
     if (fgetpos(fp, &sdb.init_pos) == -1) {
         merror("%s: Error handling integrity database (fgetpos).", ARGV0);
         return (0);
+    }
+
+    if (*c_sum == '@') {
+        anchored = 1;
+        c_sum++;
     }
 
     /* Loop over the file */
@@ -315,22 +321,25 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
 
         /* Add new checksum to the database */
         /* Commenting the file entry and adding a new one later */
-        if (fsetpos(fp, &sdb.init_pos)) {
-            merror("%s: Error handling integrity database (fsetpos).", ARGV0);
-            return (0);
-        }
-        fputc('#', fp);
+        /* Only update if file is not anchored */
+        if (!anchored) {
+            if (fsetpos(fp, &sdb.init_pos)) {
+                merror("%s: Error handling integrity database (fsetpos).", ARGV0);
+                return (0);
+            }
+            fputc('#', fp);
 
-        /* Add the new entry at the end of the file */
-        fseek(fp, 0, SEEK_END);
-        fprintf(fp, "%c%c%c%s !%ld %s\n",
-                '!',
-                p >= 1 ? '!' : '+',
-                p == 2 ? '!' : (p > 2) ? '?' : '+',
-                c_sum,
-                (long int)lf->time,
-                f_name);
-        fflush(fp);
+            /* Add the new entry at the end of the file */
+            fseek(fp, 0, SEEK_END);
+            fprintf(fp, "%c%c%c%s !%ld %s\n",
+                    '!',
+                    p >= 1 ? '!' : '+',
+                    p == 2 ? '!' : (p > 2) ? '?' : '+',
+                    c_sum,
+                    (long int)lf->time,
+                    f_name);
+            fflush(fp);
+        }
 
         switch (sk_decode_sum(&newsum, c_sum)) {
         case -1:
@@ -510,9 +519,11 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
     } /* Continue */
 
     /* If we reach here, this file is not present in our database */
-    fseek(fp, 0, SEEK_END);
-    fprintf(fp, "+++%s !%ld %s\n", c_sum, (long int)lf->time, f_name);
-    fflush(fp);
+    if (!(anchored && DB_IsCompleted(agent_id))) {
+        fseek(fp, 0, SEEK_END);
+        fprintf(fp, "+++%s !%ld %s\n", c_sum, (long int)lf->time, f_name);
+        fflush(fp);
+    }
 
     /* Insert row in SQLite DB*/
 

@@ -9,6 +9,7 @@ cd ${LOCAL}
 PWD=`pwd`
 DIR=`dirname $PWD`;
 PLIST=${DIR}/bin/.process_list;
+CSYSLOG_DAEMON=ossec-csyslogd
 
 ###  Do not modify bellow here ###
 
