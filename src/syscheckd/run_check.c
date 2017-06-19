@@ -334,6 +334,13 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
     strncpy(sf_sum, "xxx", 4);
     strncpy(sf256_sum, "xxx", 4);
 
+    int k = 0;
+    char *anchor = "";
+    if (oldsum[0] == '@') {
+        k = 1;
+        anchor = "@";
+    }
+
     /* Stat the file */
 #ifdef WIN32
     if (stat(file_name, &statbuf) < 0)
@@ -344,20 +351,13 @@ int c_read_file(const char *file_name, const char *oldsum, char *newsum)
         char alert_msg[PATH_MAX+4];
 
         alert_msg[PATH_MAX + 3] = '\0';
-        snprintf(alert_msg, PATH_MAX + 4, "-1 %s", file_name);
+        snprintf(alert_msg, PATH_MAX + 4, "%s-1 %s", anchor, file_name);
         send_syscheck_msg(alert_msg);
 
         return (-1);
     }
 
     /* Get the old sum values */
-
-    int k = 0;
-    char *anchor = "";
-    if (oldsum[0] == '@') {
-        k = 1;
-        anchor = "@";
-    }
 
     /* size */
     if (oldsum[k+0] == '+') {

@@ -44,11 +44,11 @@ int realtime_checksumfile(const char *file_name)
 
     buf = (char *) OSHash_Get(syscheck.fp, file_name);
     if (buf != NULL) {
-        char c_sum[256 + 2];
+        char c_sum[512 + 2];
         int k;
 
         c_sum[0] = '\0';
-        c_sum[255] = '\0';
+        c_sum[511] = '\0';
         k = (buf[0] == '@') ? 1 : 0;
 
         /* If it returns < 0, we have already alerted */
@@ -69,10 +69,10 @@ int realtime_checksumfile(const char *file_name)
                     free(fullalert);
                     fullalert = NULL;
                 } else {
-                    snprintf(alert_msg, 912, "%s %s", c_sum, file_name);
+                    snprintf(alert_msg, 1172, "%s %s", c_sum, file_name);
                 }
             } else {
-                snprintf(alert_msg, 912, "%s %s", c_sum, file_name);
+                snprintf(alert_msg, 1172, "%s %s", c_sum, file_name);
             }
             send_syscheck_msg(alert_msg);
 
@@ -222,10 +222,11 @@ int realtime_process()
                 snprintf(final_name, MAX_LINE, "%s/%s",
                          (char *)OSHash_Get(syscheck.realtime->dirtb, wdchar),
                          event->name);
-		/* Need a sleep here to avoid triggering on vim edits
-  		 * (and finding the file removed)
-  		 */
-		sleep(1);
+
+                /* Need a sleep here to avoid triggering on vim edits
+                 * (and finding the file removed)
+                 */
+                sleep(1);
 
                 realtime_checksumfile(final_name);
             }

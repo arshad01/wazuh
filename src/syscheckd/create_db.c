@@ -231,21 +231,26 @@ static int read_file(const char *file_name, int opts, OSMatch *restriction)
                 return (0);
             }
 
-            if (strcmp(c_sum, buf + 6) != 0) {
+            int k = 0;
+            if (c_sum[0] == '@') {
+                k = 1;
+            }
+
+            if (strcmp(c_sum, buf + 9 + k) != 0) {
                 /* Send the new checksum to the analysis server */
                 alert_msg[OS_MAXSTR] = '\0';
                 char *fullalert = NULL;
-                if (buf[5] == 's' || buf[5] == 'n') {
+                if (buf[k+6] == 's' || buf[k+6] == 'n') {
                     fullalert = seechanges_addfile(file_name);
                     if (fullalert) {
-                        snprintf(alert_msg, OS_MAXSTR, "%s%s %s\n%s", anchor, c_sum, file_name, fullalert);
+                        snprintf(alert_msg, OS_MAXSTR, "%s %s\n%s", c_sum, file_name, fullalert);
                         free(fullalert);
                         fullalert = NULL;
                     } else {
-                        snprintf(alert_msg, 1172, "%s%s %s", anchor, c_sum, file_name);
+                        snprintf(alert_msg, 1172, "%s %s", c_sum, file_name);
                     }
                 } else {
-                    snprintf(alert_msg, 1172, "%s%s %s", anchor, c_sum, file_name);
+                    snprintf(alert_msg, 1172, "%s %s", c_sum, file_name);
                 }
                 send_syscheck_msg(alert_msg);
             }

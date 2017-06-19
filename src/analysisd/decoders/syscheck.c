@@ -341,7 +341,7 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
                     (long int)lf->time,
                     f_name);
             fflush(fp);
-        }
+        } 
 
         switch (sk_decode_sum(&newsum, c_sum)) {
         case -1:
@@ -478,6 +478,7 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
                          "%s"
                          "%s"
                          "%s"
+                         "%s"
                          "%s",
                          f_name,
                          sdb.size,
@@ -485,7 +486,8 @@ static int DB_Search(const char *f_name, char *c_sum, Eventinfo *lf)
                          sdb.owner,
                          sdb.gowner,
                          sdb.md5,
-                         sdb.sha1
+                         sdb.sha1,
+                         sdb.sha256
                         );
 
                 if (lf->data)
@@ -635,6 +637,11 @@ int DecodeSyscheck(Eventinfo *lf)
 
     /* Checksum is at the beginning of the log */
     c_sum = lf->log;
+
+    if ((c_sum[0] == '@') && (strncmp((c_sum+1), "-1", 2) == 0)) {
+        // Do not search for deleted anchored entries 
+        return(0);
+    }
 
     /* Search for file changes */
     return (DB_Search(f_name, c_sum, lf));
