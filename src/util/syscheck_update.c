@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         if (fp) {
             fclose(fp);
         }
-        /* unlink(final_dir); */
+        unlink(final_dir);
 
         wdb_delete_fim(0);
     }
